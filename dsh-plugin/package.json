@@ -1,0 +1,35 @@
+{
+  "name": "dsh-bazi-tool",
+  "version": "0.1.0",
+  "description": "八字排盘工具：真太阳时、四柱、十神、五行力量、大运流年、格局用神（每个结论带推导依据）",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "bazi",
+    "tool"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bazi-engine": "file:..",
+    "lunar-javascript": "^1.7.7"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# dsh-bazi-tool 的 profile 层补丁：挂一行工具插件
+- insert:
+    - id: tool-bazi
+      name: dsh-bazi-tool

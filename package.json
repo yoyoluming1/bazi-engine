@@ -1,0 +1,32 @@
+{
+  "name": "bazi-engine",
+  "version": "0.1.0",
+  "description": "八字排盘引擎：真太阳时修正、四柱、十神、五行力量、身强弱、大运流年、格局与用神（结论可追溯）",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "bazi",
+    "chinese-astrology",
+    "solar-time",
+    "calendar"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "lunar-javascript": "^1.7.7"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "cli": "node cli.mjs"
+  },
+  "bin": {
+    "bazi": "./cli.mjs"
+  }
+}
