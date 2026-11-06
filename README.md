@@ -58,6 +58,22 @@ dsh plugin --profile <你的 profile> add file:/path/to/bazi-engine/dsh-plugin
 bazi_chart({ birthDate: '1993-03-15', birthTime: '08:20', longitude: 116.4, gender: 'male' })
 ```
 
+## 网页版（命理 bot 的入口）
+
+`web/` 是一个零依赖的小服务：一个聊天页 + 一个 `/api/chat` 接口，背后就是 `dsh --profile bazi`。
+
+```bash
+cd web && cp config.example.json config.json   # 改访问码与 DSH_HOME
+node server.mjs
+```
+
+- **访问码**：`?code=xxx` 进来即种 cookie，之后免带
+- **限流**：每 IP 每分钟 N 条（防刷）
+- **会话**：每个浏览器一个 sid，映射到一条 DSH 会话，聊天有上下文；同一会话串行处理
+- 公网部署时 `config.json` 里的 `host` 设 `0.0.0.0`，并在云防火墙放行对应端口
+
+测试：`node --test web/server.test.mjs`（访问码、聊天、空消息、限流、健康检查）
+
 ## 设计纪律
 
 1. **只实现一套判法**：月令取格 + 扶抑用神。命理流派众多，吞下所有流派等于什么都不准。
@@ -71,7 +87,7 @@ bazi_chart({ birthDate: '1993-03-15', birthTime: '08:20', longitude: 116.4, gend
 node --test test/
 ```
 
-30 条，覆盖：
+35 条，覆盖：
 
 - 真太阳时的量级与边界（均时差 ±17 分钟内、跨时辰边界改变时柱）
 - 已知盘的完整四柱
@@ -81,6 +97,7 @@ node --test test/
 - 插件契约（注册形状、输出 schema、非法入参拒绝、render 产出）
 - 调候表结构完整（12 月令 × 10 日干 = 120 格）、取用优先级、未收录时的明确回退
 - 地支关系：六合/六冲/六害成对、三合需三支齐全、三刑与自刑、流年定位到柱
+- 网页服务：访问码、聊天链路、空/超长消息、限流、健康检查
 
 ## 局限（诚实清单）
 

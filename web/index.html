@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>看个盘</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --line:#262b36; --text:#e7e9ee; --dim:#8b93a1; --accent:#c8a96a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; }
+  #app { max-width:680px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; }
+  header { padding:18px 20px 12px; border-bottom:1px solid var(--line); position:sticky; top:0; background:linear-gradient(var(--bg), rgba(15,17,21,.92)); backdrop-filter:blur(8px); z-index:2; }
+  header h1 { margin:0; font-size:17px; font-weight:600; letter-spacing:.5px; }
+  header p { margin:4px 0 0; font-size:12px; color:var(--dim); }
+  #log { flex:1; padding:20px 16px 140px; display:flex; flex-direction:column; gap:14px; }
+  .msg { max-width:88%; padding:11px 14px; border-radius:14px; white-space:pre-wrap; word-break:break-word; font-size:15px; }
+  .me { align-self:flex-end; background:#2a3140; border-bottom-right-radius:4px; }
+  .bot { align-self:flex-start; background:var(--card); border:1px solid var(--line); border-bottom-left-radius:4px; }
+  .bot b { color:var(--accent); font-weight:600; }
+  .sys { align-self:center; color:var(--dim); font-size:13px; text-align:center; }
+  .typing { color:var(--dim); font-size:13px; padding-left:6px; }
+  footer { position:fixed; left:0; right:0; bottom:0; background:rgba(15,17,21,.96); border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .composer { max-width:680px; margin:0 auto; display:flex; gap:8px; align-items:flex-end; }
+  textarea { flex:1; resize:none; background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:12px; padding:11px 13px; font:inherit; max-height:120px; min-height:46px; }
+  textarea:focus { outline:none; border-color:#3a4254; }
+  button { background:var(--accent); color:#1a1408; border:0; border-radius:12px; padding:0 16px; height:46px; font-weight:600; font-size:15px; }
+  button:disabled { opacity:.45; }
+  .hint { max-width:680px; margin:6px auto 0; font-size:11px; color:var(--dim); text-align:center; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>看个盘</h1>
+    <p>生辰八字 · 真太阳时 · 调候与格局，结论都带依据</p>
+  </header>
+  <div id="log">
+    <div class="sys">把出生年月日、几点、出生城市发过来就行<br>例如：1993年3月15日早上8点20，北京</div>
+  </div>
+  <footer>
+    <div class="composer">
+      <textarea id="input" rows="1" placeholder="说说你的生日和想问的事"></textarea>
+      <button id="send">发送</button>
+    </div>
+    <div class="hint">传统文化参考，不构成任何决策依据</div>
+  </footer>
+</div>
+<script>
+const log = document.getElementById('log')
+const input = document.getElementById('input')
+const send = document.getElementById('send')
+let busy = false
+
+function add(cls, text) {
+  const d = document.createElement('div')
+  d.className = 'msg ' + cls
+  d.textContent = text
+  log.appendChild(d)
+  log.scrollTop = log.scrollHeight
+  return d
+}
+
+function typing(on) {
+  let t = document.getElementById('typing')
+  if (on && !t) {
+    t = document.createElement('div')
+    t.id = 'typing'
+    t.className = 'typing'
+    t.textContent = '正在排盘…'
+    log.appendChild(t)
+    log.scrollTop = log.scrollHeight
+  } else if (!on && t) t.remove()
+}
+
+async function submit() {
+  const text = input.value.trim()
+  if (!text || busy) return
+  busy = true
+  send.disabled = true
+  add('me', text)
+  input.value = ''
+  input.style.height = 'auto'
+  typing(true)
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    })
+    const data = await res.json().catch(() => ({}))
+    typing(false)
+    if (!res.ok) add('sys', data.error || ('出错了（' + res.status + '）'))
+    else add('bot', data.reply)
+  } catch (e) {
+    typing(false)
+    add('sys', '连不上服务器，检查一下网络')
+  } finally {
+    busy = false
+    send.disabled = false
+    input.focus()
+  }
+}
+
+send.onclick = submit
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit() }
+})
+input.addEventListener('input', () => {
+  input.style.height = 'auto'
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px'
+})
+</script>
+</body>
+</html>

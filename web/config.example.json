@@ -1,0 +1,13 @@
+{
+  "port": 8080,
+  "host": "0.0.0.0",
+  "accessCode": "换成你自己的访问码",
+  "rateLimitPerMinute": 6,
+  "dsh": {
+    "bin": "dsh",
+    "profile": "bazi",
+    "cwd": "/root/.dsh-bots/bazi",
+    "timeoutMs": 180000,
+    "env": { "DSH_HOME": "/root/.dsh-bots/bazi" }
+  }
+}
