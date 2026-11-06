@@ -17,6 +17,10 @@
   .me { align-self:flex-end; background:#2a3140; border-bottom-right-radius:4px; }
   .bot { align-self:flex-start; background:var(--card); border:1px solid var(--line); border-bottom-left-radius:4px; }
   .bot b { color:var(--accent); font-weight:600; }
+  .bot hr { border:0; border-top:1px solid var(--line); margin:14px 0; }
+  .bot .hd { display:block; margin:14px 0 6px; font-weight:600; color:var(--accent); }
+  .bot .li { padding-left:14px; position:relative; }
+  .bot .li:before { content:"·"; position:absolute; left:2px; color:var(--dim); }
   .sys { align-self:center; color:var(--dim); font-size:13px; text-align:center; }
   .typing { color:var(--dim); font-size:13px; padding-left:6px; }
   footer { position:fixed; left:0; right:0; bottom:0; background:rgba(15,17,21,.96); border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
@@ -51,10 +55,35 @@ const input = document.getElementById('input')
 const send = document.getElementById('send')
 let busy = false
 
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+// 极简 Markdown：**加粗**、# 标题、- 列表、--- 分隔线、空行分段。
+// 先整体转义，所以不会因为模型输出 <script> 出事。
+function render(text) {
+  const lines = esc(String(text)).split('\n')
+  const out = []
+  let list = false
+  for (const raw of lines) {
+    const line = raw.trimEnd()
+    if (/^\s*(-{3,}|_{3,})\s*$/.test(line)) { if (list) { out.push('</div>'); list = false } out.push('<hr>'); continue }
+    const h = line.match(/^\s*#{1,4}\s+(.*)$/)
+    if (h) { if (list) { out.push('</div>'); list = false } out.push('<span class="hd">' + inline(h[1]) + '</span>'); continue }
+    const li = line.match(/^\s*[-*]\s+(.*)$/)
+    if (li) { if (!list) { out.push('<div>'); list = true } out.push('<span class="li">' + inline(li[1]) + '</span><br>'); continue }
+    if (list) { out.push('</div>'); list = false }
+    if (line.trim() === '') { out.push('<br>'); continue }
+    out.push('<div>' + inline(line) + '</div>')
+  }
+  if (list) out.push('</div>')
+  return out.join('')
+}
+const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<b>$1</b>')
+
 function add(cls, text) {
   const d = document.createElement('div')
   d.className = 'msg ' + cls
-  d.textContent = text
+  if (cls === 'bot') d.innerHTML = render(text)
+  else d.textContent = text
   log.appendChild(d)
   log.scrollTop = log.scrollHeight
   return d
