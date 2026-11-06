@@ -42,8 +42,17 @@ const s = c.strength
 console.log(`\n身强弱    ${s.grade}（帮扶 ${s.support} / 总 ${s.total} = ${(s.ratio * 100).toFixed(1)}%）`)
 console.log(`判断依据  比劫+印 占总量 ${(s.ratio * 100).toFixed(1)}%，月令加权已计入`)
 
+const a = analyze(c)
 const l = luck({ chart: c, gender })
 const thisYear = new Date().getFullYear()
+if (a.tiaohou?.available) {
+  const t = a.tiaohou
+  console.log(`\n调候      主用 ${t.main}（${t.mainElement}）${t.assist.length ? `，辅 ${t.assist.join('、')}` : ''}｜${t.season}`)
+  for (const b of t.basis) console.log(`  · ${b}`)
+} else {
+  console.log(`\n调候      ${a.tiaohou?.reason ?? '未计算'}`)
+}
+
 console.log(`\n大运      ${gender === 'male' ? '男' : '女'}命，${l.forward ? '顺行' : '逆行'}，${l.qiYun.text}`)
 console.log('  起始年  年龄  干支  十神')
 for (const d of l.daYun) {
@@ -53,7 +62,6 @@ for (const d of l.daYun) {
 const ln = liuNian({ chart: c, year: thisYear })
 console.log(`\n流年      ${thisYear} 年 ${ln.ganZhi}（${ln.ganTenGod}）`)
 
-const a = analyze(c)
 console.log(`\n格局      ${a.geju.name}（取法：${a.geju.via}）`)
 for (const b of a.geju.basis) console.log(`  · ${b}`)
 console.log(`\n用神      喜 ${a.yongShen.xi.join('、')}｜第一用神 ${a.yongShen.primary}｜忌 ${a.yongShen.ji.join('、') || '无'}`)

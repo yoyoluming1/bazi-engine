@@ -7,6 +7,7 @@
  *   3. 不出现「注定/必然」这类措辞 —— 输出是推演，不是判决
  */
 import { tenGod, GAN } from './bazi.mjs'
+import { tiaohou } from './tiaohou.mjs'
 
 const GAN_ELEM = { 甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水' }
 const GENERATES = { 木:'火', 火:'土', 土:'金', 金:'水', 水:'木' }
@@ -109,9 +110,13 @@ export function yongShen({ chart }) {
   return { xi: ordered, ji, primary: ordered[0] ?? null, basis }
 }
 
-/** 把格局与用神合成一段「可解释的结论」 */
+/**
+ * 把三件事合成一段「可解释的结论」。
+ * 格局/扶抑回答「强弱与结构」，调候回答「寒暖燥湿」—— 两个问题正交，并列输出。
+ */
 export function analyze(chart) {
   const geju = findGeJu({ pillars: chart.pillars, dayGan: chart.dayGan })
   const ys = yongShen({ chart })
-  return { geju, yongShen: ys }
+  const th = tiaohou({ chart })
+  return { geju, yongShen: ys, tiaohou: th }
 }

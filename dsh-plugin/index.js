@@ -68,7 +68,7 @@ export function apply(ctx) {
     name: 'bazi_chart',
     description: [
       '排一张八字盘并给出可解释的结论：真太阳时修正、四柱、十神、五行力量、身强弱、大运、流年、格局、用神。',
-      '每个结论都附推导依据（basis），解释时应当引用这些依据，而不是自行发挥。',
+      '每个结论都附推导依据（basis），解释时应当引用这些依据，而不是自行发挥。调候与扶抑是两套正交的判断，不要混为一谈。',
       '不知道出生地经度时不要编；默认 116.4（北京）并明确说明这是假设。',
     ].join(' '),
     parameters: {
@@ -101,6 +101,14 @@ export function apply(ctx) {
       out.push('')
       out.push(`用神：喜 ${a.yongShen.xi.join('、')}｜第一用神 ${a.yongShen.primary}｜忌 ${a.yongShen.ji.join('、') || '无'}`)
       for (const b of a.yongShen.basis) out.push(`  · ${b}`)
+      out.push('')
+      if (a.tiaohou?.available) {
+        const t = a.tiaohou
+        out.push(`调候：主用 ${t.main}（${t.mainElement}）${t.assist.length ? `，辅以 ${t.assist.join('、')}` : ''}｜${t.season}`)
+        for (const b of t.basis) out.push(`  · ${b}`)
+      } else {
+        out.push(`调候：${a.tiaohou?.reason ?? '未计算'}`)
+      }
       out.push('')
       out.push(`大运：${gender === 'male' ? '男' : '女'}命，${l.forward ? '顺行' : '逆行'}，${l.qiYun.text}`)
       for (const d of l.daYun) out.push(`  ${d.startYear} 起 ${d.startAge} 岁 ${d.ganZhi}（${d.ganTenGod}）`)

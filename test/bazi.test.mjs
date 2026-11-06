@@ -116,3 +116,47 @@ test('用神：身偏强喜克泄耗，忌比劫与印', async () => {
   assert.equal(a.yongShen.primary, '金')
   assert.ok(a.yongShen.basis.length >= 3, '必须带推导根据')
 })
+
+test('调候表：12 个月令 × 10 个日干，共 120 格，且全是合法天干', async () => {
+  const { TIAOHOU } = await import('../src/tiaohou.mjs')
+  const gans = new Set('甲乙丙丁戊己庚辛壬癸')
+  assert.equal(Object.keys(TIAOHOU).length, 12)
+  let cells = 0
+  for (const [month, row] of Object.entries(TIAOHOU)) {
+    assert.equal(Object.keys(row).length, 10, `${month} 月应覆盖 10 个日干`)
+    for (const [day, val] of Object.entries(row)) {
+      assert.ok(val.length >= 1, `${month}月${day}日为空`)
+      for (const g of val) assert.ok(gans.has(g), `${month}月${day}日含非法天干 ${g}`)
+      cells++
+    }
+  }
+  assert.equal(cells, 120)
+})
+
+test('调候取用：甲木寅月取丙为先，丙火午月取壬为先，壬水子月取戊为先', async () => {
+  const { TIAOHOU } = await import('../src/tiaohou.mjs')
+  assert.equal(TIAOHOU.寅.甲[0], '丙')
+  assert.equal(TIAOHOU.午.丙[0], '壬')
+  assert.equal(TIAOHOU.子.壬[0], '戊')
+  assert.equal(TIAOHOU.亥.癸[0], '庚')
+})
+
+test('调候输出：带季节、主用五行与推导依据', async () => {
+  const { tiaohou } = await import('../src/tiaohou.mjs')
+  const c = chart({ date: '1993-06-15', time: '12:00', longitude: 116.4 })
+  const t = tiaohou({ chart: c })
+  assert.equal(t.available, true)
+  assert.equal(t.month, '午')
+  assert.equal(t.main, '壬')
+  assert.equal(t.mainElement, '水')
+  assert.ok(t.basis.length >= 3)
+  assert.match(t.basis[0], /仲夏/)
+})
+
+test('调候表未收录时明确说明，不编造', async () => {
+  const { tiaohou } = await import('../src/tiaohou.mjs')
+  const fake = { dayGan: '甲', pillars: [null, { zhi: 'X' }, null, null], score: {} }
+  const t = tiaohou({ chart: fake })
+  assert.equal(t.available, false)
+  assert.match(t.reason, /未收录/)
+})
