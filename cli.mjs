@@ -3,6 +3,7 @@
 import { chart } from './src/bazi.mjs'
 import { luck, liuNian } from './src/luck.mjs'
 import { analyze } from './src/geju.mjs'
+import { relationsWith } from './src/relations.mjs'
 
 const args = process.argv.slice(2)
 const flags = new Set(args.filter((a) => a.startsWith('--')))
@@ -66,4 +67,15 @@ console.log(`\n格局      ${a.geju.name}（取法：${a.geju.via}）`)
 for (const b of a.geju.basis) console.log(`  · ${b}`)
 console.log(`\n用神      喜 ${a.yongShen.xi.join('、')}｜第一用神 ${a.yongShen.primary}｜忌 ${a.yongShen.ji.join('、') || '无'}`)
 for (const b of a.yongShen.basis) console.log(`  · ${b}`)
+if (a.relations.length) {
+  console.log('\n地支关系')
+  for (const r of a.relations) console.log(`  ${r.type}  ${r.pairs.map((x) => x.pos + x.zhi).join(' ')}  ${r.detail}`)
+} else {
+  console.log('\n地支关系  无')
+}
+const lr = relationsWith(c.pillars, ln.zhi, '流年')
+if (lr.length) {
+  console.log(`\n流年 ${ln.ganZhi} 与原局`)
+  for (const r of lr) console.log(`  ${r.type}  ${r.pairs.map((x) => x.pos + x.zhi).join(' ')}`)
+}
 console.log('')

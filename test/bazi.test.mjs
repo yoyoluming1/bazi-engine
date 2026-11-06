@@ -160,3 +160,38 @@ test('调候表未收录时明确说明，不编造', async () => {
   assert.equal(t.available, false)
   assert.match(t.reason, /未收录/)
 })
+
+test('地支关系：六合、六冲、六害各自成对', async () => {
+  const { findRelations } = await import('../src/relations.mjs')
+  const p = (a, b, c, d) => [{ zhi: a }, { zhi: b }, { zhi: c }, { zhi: d }]
+  assert.ok(findRelations(p('子', '丑', '午', '酉')).some((r) => r.type === '六合'), '子丑合')
+  assert.ok(findRelations(p('寅', '申', '子', '丑')).some((r) => r.type === '六冲'), '寅申冲')
+  assert.ok(findRelations(p('子', '未', '午', '酉')).some((r) => r.type === '六害'), '子未害')
+})
+
+test('地支关系：三合局需要三支齐全', async () => {
+  const { findRelations } = await import('../src/relations.mjs')
+  const full = findRelations([{ zhi: '申' }, { zhi: '子' }, { zhi: '辰' }, { zhi: '酉' }])
+  const half = findRelations([{ zhi: '申' }, { zhi: '子' }, { zhi: '午' }, { zhi: '酉' }])
+  assert.ok(full.some((r) => r.type === '三合' && /水/.test(r.detail)))
+  assert.ok(!half.some((r) => r.type === '三合'))
+})
+
+test('地支关系：三刑与自刑', async () => {
+  const { findRelations } = await import('../src/relations.mjs')
+  const sanxing = findRelations([{ zhi: '寅' }, { zhi: '巳' }, { zhi: '申' }, { zhi: '子' }])
+  assert.ok(sanxing.some((r) => r.type === '相刑' && /无恩/.test(r.detail)))
+  const self = findRelations([{ zhi: '辰' }, { zhi: '辰' }, { zhi: '午' }, { zhi: '酉' }])
+  assert.ok(self.some((r) => r.type === '自刑'))
+})
+
+test('地支关系：流年/大运与原局的关系能定位到具体柱', async () => {
+  const { relationsWith } = await import('../src/relations.mjs')
+  const pillars = [{ zhi: '酉' }, { zhi: '卯' }, { zhi: '未' }, { zhi: '辰' }]
+  const liu = relationsWith(pillars, '午', '流年')
+  assert.ok(liu.length > 0)
+  assert.ok(liu.every((r) => r.pairs.some((p) => p.pos === '流年')))
+  assert.ok(liu.some((r) => r.type === '六合' && r.pairs.some((p) => p.zhi === '未')))
+  const yun = relationsWith(pillars, '亥', '大运')
+  assert.ok(yun.some((r) => r.type === '三合'))
+})

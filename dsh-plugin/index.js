@@ -22,7 +22,7 @@ try {
 } catch {
   engine = await import('../index.mjs')
 }
-const { chart, luck, liuNian, analyze } = engine
+const { chart, luck, liuNian, analyze, relationsWith } = engine
 
 export const name = 'tool-bazi'
 export const inject = ['tools']
@@ -108,6 +108,20 @@ export function apply(ctx) {
         for (const b of t.basis) out.push(`  · ${b}`)
       } else {
         out.push(`调候：${a.tiaohou?.reason ?? '未计算'}`)
+      }
+      out.push('')
+      if (a.relations?.length) {
+        out.push('地支关系：')
+        for (const r of a.relations) {
+          out.push(`  ${r.type}：${r.pairs.map((x) => x.pos + x.zhi).join(' ')}（${r.detail}）`)
+        }
+      } else {
+        out.push('地支关系：无')
+      }
+      const lr = relationsWith(c.pillars, ln.zhi, '流年')
+      if (lr.length) {
+        out.push(`流年${ln.ganZhi}与原局：`)
+        for (const r of lr) out.push(`  ${r.type}：${r.pairs.map((x) => x.pos + x.zhi).join(' ')}`)
       }
       out.push('')
       out.push(`大运：${gender === 'male' ? '男' : '女'}命，${l.forward ? '顺行' : '逆行'}，${l.qiYun.text}`)

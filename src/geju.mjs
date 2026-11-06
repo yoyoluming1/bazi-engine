@@ -8,6 +8,7 @@
  */
 import { tenGod, GAN } from './bazi.mjs'
 import { tiaohou } from './tiaohou.mjs'
+import { findRelations } from './relations.mjs'
 
 const GAN_ELEM = { 甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水' }
 const GENERATES = { 木:'火', 火:'土', 土:'金', 金:'水', 水:'木' }
@@ -118,5 +119,6 @@ export function analyze(chart) {
   const geju = findGeJu({ pillars: chart.pillars, dayGan: chart.dayGan })
   const ys = yongShen({ chart })
   const th = tiaohou({ chart })
-  return { geju, yongShen: ys, tiaohou: th }
+  const relations = findRelations(chart.pillars)
+  return { geju, yongShen: ys, tiaohou: th, relations }
 }
