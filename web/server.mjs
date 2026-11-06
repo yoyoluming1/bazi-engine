@@ -147,7 +147,11 @@ export function createApp(cfg) {
     }
 
     if (req.method === 'GET' && url.pathname === '/') {
-      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
+      // 不缓存：改版后刷新就能看到，不用教用户清缓存
+      res.writeHead(200, {
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store, must-revalidate',
+      })
       res.end(PAGE)
       return
     }
