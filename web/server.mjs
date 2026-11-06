@@ -19,6 +19,12 @@ export const HERE = dirname(fileURLToPath(import.meta.url))
 
 export function createApp(cfg) {
   const PAGE = readFileSync(join(HERE, 'index.html'), 'utf8')
+  const STATIC = {
+    '/manifest.json': ['application/manifest+json; charset=utf-8', readFileSync(join(HERE, 'manifest.json'))],
+    '/icon-192.png': ['image/png', readFileSync(join(HERE, 'icon-192.png'))],
+    '/icon-512.png': ['image/png', readFileSync(join(HERE, 'icon-512.png'))],
+    '/apple-touch-icon.png': ['image/png', readFileSync(join(HERE, 'apple-touch-icon.png'))],
+  }
   const sessions = new Map() // sid -> { dshSessionId, lastSeen, queue }
   const hits = new Map()     // ip -> [timestamps]
 
@@ -133,6 +139,13 @@ export function createApp(cfg) {
 
     if (url.pathname === '/api/health') return json(res, 200, { ok: true })
 
+    const asset = STATIC[url.pathname]
+    if (req.method === 'GET' && asset) {
+      res.writeHead(200, { 'content-type': asset[0], 'cache-control': 'public, max-age=86400' })
+      res.end(asset[1])
+      return
+    }
+
     if (!allowed(req, url)) {
       if (url.pathname === '/') {
         res.writeHead(403, { 'content-type': 'text/html; charset=utf-8' })
@@ -194,6 +207,14 @@ export function createApp(cfg) {
       const result = await run
       if (!result.ok) return json(res, 502, { error: result.error || '出错了' })
       return json(res, 200, { reply: result.text })
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/reset') {
+      const old = parseCookies(req).sid
+      if (old) sessions.delete(old)
+      const sid = randomUUID()
+      res.setHeader('set-cookie', `sid=${sid}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax`)
+      return json(res, 200, { ok: true })
     }
 
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' })

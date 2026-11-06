@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="看个盘">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>看个盘</title>
 <style>
   :root { --bg:#0f1115; --card:#171a21; --line:#262b36; --text:#e7e9ee; --dim:#8b93a1; --accent:#c8a96a; }
@@ -10,7 +16,9 @@
   body { margin:0; background:var(--bg); color:var(--text); font:16px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", sans-serif; }
   #app { max-width:680px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; }
   header { padding:18px 20px 12px; border-bottom:1px solid var(--line); position:sticky; top:0; background:linear-gradient(var(--bg), rgba(15,17,21,.92)); backdrop-filter:blur(8px); z-index:2; }
+  header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
   header h1 { margin:0; font-size:17px; font-weight:600; letter-spacing:.5px; }
+  #reset { background:transparent; color:var(--dim); border:1px solid var(--line); height:30px; padding:0 10px; font-size:12px; border-radius:8px; flex:0 0 auto; }
   header p { margin:4px 0 0; font-size:12px; color:var(--dim); }
   #log { flex:1; padding:20px 16px 140px; display:flex; flex-direction:column; gap:14px; }
   .msg { max-width:88%; padding:11px 14px; border-radius:14px; white-space:pre-wrap; word-break:break-word; font-size:15px; }
@@ -35,8 +43,11 @@
 <body>
 <div id="app">
   <header>
-    <h1>看个盘</h1>
-    <p>生辰八字 · 真太阳时 · 调候与格局，结论都带依据</p>
+    <div>
+      <h1>看个盘</h1>
+      <p>生辰八字 · 真太阳时 · 调候与格局，结论都带依据</p>
+    </div>
+    <button id="reset" title="清空这个对话">清空</button>
   </header>
   <div id="log">
     <div class="sys">把出生年月日、几点、出生城市发过来就行<br>例如：1993年3月15日早上8点20，北京</div>
@@ -128,6 +139,12 @@ async function submit() {
     send.disabled = false
     input.focus()
   }
+}
+
+document.getElementById('reset').onclick = async () => {
+  if (busy || !confirm('清空这个对话？之前的盘就不在上下文里了。')) return
+  await fetch('/api/reset', { method: 'POST' }).catch(() => {})
+  log.innerHTML = '<div class="sys">对话已清空，重新说吧</div>'
 }
 
 send.onclick = submit

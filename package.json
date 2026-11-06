@@ -23,7 +23,7 @@
     "lunar-javascript": "^1.7.7"
   },
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test test/ web/server.test.mjs",
     "cli": "node cli.mjs"
   },
   "bin": {

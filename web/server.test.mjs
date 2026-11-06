@@ -81,3 +81,25 @@ test('健康检查不需要访问码', async () => {
   assert.equal((await fetch(s.base + '/api/health')).status, 200)
   await s.close()
 })
+
+test('静态资源：manifest 与图标可直接取，且不需要访问码', async () => {
+  const s = await start()
+  const m = await fetch(s.base + '/manifest.json')
+  assert.equal(m.status, 200)
+  assert.match(m.headers.get('content-type'), /manifest/)
+  const icon = await fetch(s.base + '/icon-192.png')
+  assert.equal(icon.status, 200)
+  assert.equal(icon.headers.get('content-type'), 'image/png')
+  const apple = await fetch(s.base + '/apple-touch-icon.png')
+  assert.equal(apple.status, 200)
+  await s.close()
+})
+
+test('清空对话：换发新 sid，旧会话被丢弃', async () => {
+  const s = await start()
+  const r = await fetch(s.base + '/api/reset', { method: 'POST', headers: { cookie: 'code=k; sid=' + 'a'.repeat(36) } })
+  assert.equal(r.status, 200)
+  const setCookie = r.headers.get('set-cookie') || ''
+  assert.match(setCookie, /sid=[0-9a-f-]{36}/)
+  await s.close()
+})
